@@ -1,3 +1,1 @@
-Colocar overlay: 1,2,3,4
-
 Arrumar click do get reward, colocar localização fixa

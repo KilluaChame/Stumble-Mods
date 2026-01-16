@@ -5,13 +5,14 @@
 #NoTrayIcon
 
 ; =========================================================
-; CONFIGURAÇÕES DE LAYOUT
+; CONFIGURAÇÕES DE LAYOUT - EDITE AQUI PARA MUDAR TAMANHOS
 ; =========================================================
-Global Const $GAME_TITLE = "Stumble Guys"
-Global Const $CARD_W = 200
-Global Const $CARD_H = 48
-Global Const $OVERLAY_TOTAL_W = 660
-Global Const $BG_COLOR = 0x000000
+Global Const $GAME_TITLE = "Stumble Guys"           ; Título da janela do jogo
+Global Const $CARD_W = 250                         ; LARGURA de cada card (AIM, PLATAFORMA, AFK)
+Global Const $CARD_H = 55                          ; ALTURA de cada card (aumente para mostrar mais linhas)
+Global Const $CARD_GAP = 10                        ; ESPAÇAMENTO entre cards (em pixels)
+Global Const $OVERLAY_TOTAL_W = 780                ; LARGURA TOTAL do overlay (3 cards de 250 + 2 gaps de 10 = 780)
+Global Const $BG_COLOR = 0x000000                  ; COR DE FUNDO (preto)
 
 ; Variáveis de controle para evitar o "piscar" (Flicker)
 Global $currentAlpha = -1
@@ -26,16 +27,18 @@ WinWait($GAME_TITLE)
 Global $hGame = WinGetHandle($GAME_TITLE)
 
 ; --- CRIAÇÃO DA INTERFACE ---
+; Cria a janela do overlay com largura TOTAL ($OVERLAY_TOTAL_W) e altura ($CARD_H)
+; Posição inicial: X=0, Y=0 (será movida depois para centralizar no jogo)
 Global $hGUI = GUICreate("Overlay", $OVERLAY_TOTAL_W, $CARD_H, 0, 0, $WS_POPUP, BitOR($WS_EX_TOPMOST, $WS_EX_LAYERED, $WS_EX_TOOLWINDOW, $WS_EX_TRANSPARENT))
 GUISetBkColor(0x010101)
 _SetTransparentColor($hGUI, 0x010101)
 
 ; --- CRIAÇÃO DOS CARDS ---
-; Criamos as variáveis globais para os IDs dos componentes
-Global $dataAim = _CriarCard(0,   "AIM ASSIST", "OFF [F7]")
-Global $dataPlat = _CriarCard(220, "PLATAFORMA", "OFF [F8]", "")
-; AFK card includes help for F1/F2/F3 and shows selected event when available
-Global $dataFarm = _CriarCard(440, "AFK FARM",   "OFF [F10]ww", "[F1] Normal  [F2] Ranked  [F3] Custom (use 1/2/3/4)")
+; Cada card é posicionado em X diferente com espaçamento entre eles
+; Posição X = número de pixels da esquerda para direita (com GAP entre cards)
+Global $dataAim = _CriarCard(0,                              "AIM ASSIST", "OFF [F7]")           ; Primeiro card: X=0
+Global $dataPlat = _CriarCard($CARD_W + $CARD_GAP,           "PLATAFORMA", "OFF [F8]", "")       ; Segundo card: X=260
+Global $dataFarm = _CriarCard(($CARD_W + $CARD_GAP) * 2,     "AFK FARM",   "OFF [F10]", "[F1] Normal  [F2] Ranked  [F3] Custom  [F4]")  ; Terceiro card: X=520
 
 GUISetState(@SW_SHOWNOACTIVATE, $hGUI)
 
@@ -51,7 +54,7 @@ While 1
         If IsArray($pos) Then
             ; Cálculo de centralização
             Local $centerX = $pos[0] + ($pos[2] / 2) - ($OVERLAY_TOTAL_W / 2)
-            Local $targetY = $pos[1] + 5
+            Local $targetY = $pos[1]
             
             ; SÓ MOVE SE A POSIÇÃO MUDAR (Evita piscadinhas)
             If $centerX <> $lastX Or $targetY <> $lastY Then
@@ -108,7 +111,7 @@ Func _UpdateFromIni()
         _SetCardColorAndText($dataFarm[0], $sFarm, "ON [F10]", "OFF [F10]")
         ; show quick key hints when AFK script is available
         If $sFarm = "1" Then
-            GUICtrlSetData($dataFarm[1], "[F1] Normal  [F2] Ranked  [F3] Custom (use 1/2)")
+            GUICtrlSetData($dataFarm[1], "[F1] Normal  [F2] Ranked  [F3] Custom (use 1/2/3/4)")
         Else
             GUICtrlSetData($dataFarm[1], "")
         EndIf
@@ -128,26 +131,41 @@ Func _SetCardColorAndText($id, $val, $txtOn, $txtOff)
 EndFunc
 
 ; Cria a estrutura visual do Card
+; $x = posição horizontal (em pixels, começa do 0)
+; $titulo = nome do card (AIM ASSIST, PLATAFORMA, AFK FARM)
+; $atalho = texto principal (OFF [F7], ON [F8], etc)
+; $atalhoExtra = texto adicional (eventos, calibração, etc) - opcional
 Func _CriarCard($x, $titulo, $atalho, $atalhoExtra = "")
-    ; Fundo (base do card)
+    ; ====== FUNDO DO CARD ======
+    ; Cria um retângulo de fundo preto
     Local $bg = GUICtrlCreateLabel("", $x, 0, $CARD_W, $CARD_H)
     GUICtrlSetBkColor($bg, $BG_COLOR)
 
-    ; Título
+    ; ====== TÍTULO ======
+    ; Posição Y = 3 pixels do topo
+    ; Altura = 14 pixels
+    ; Fonte: Segoe UI, tamanho 9, BOLD (800)
     Local $lblTitle = GUICtrlCreateLabel($titulo, $x, 3, $CARD_W, 14, $SS_CENTER)
     GUICtrlSetFont($lblTitle, 9, 800, 0, "Segoe UI")
-    GUICtrlSetColor($lblTitle, 0xFFFFFF)
+    GUICtrlSetColor($lblTitle, 0xFFFFFF)                    ; Branco
     GUICtrlSetBkColor($lblTitle, $BG_COLOR)
 
-    ; Status
-    Local $lblStat = GUICtrlCreateLabel($atalho, $x, 20, $CARD_W, 14, $SS_CENTER)
-    GUICtrlSetFont($lblStat, 8, 400, 0, "Segoe UI")
+    ; ====== STATUS (ON/OFF) ======
+    ; Posição Y = 20 pixels do topo
+    ; Altura = 16 pixels
+    ; Muda de cor: VERDE (0x40FF40) se ON, VERMELHO (0xFF4040) se OFF
+    Local $lblStat = GUICtrlCreateLabel($atalho, $x, 18, $CARD_W, 16, $SS_CENTER)
+    GUICtrlSetFont($lblStat, 9, 400, 0, "Segoe UI")
     GUICtrlSetBkColor($lblStat, $BG_COLOR)
 
-    ; Extra (F1)
-    Local $lblEx = GUICtrlCreateLabel($atalhoExtra, $x, 36, $CARD_W, 10, $SS_CENTER)
-    GUICtrlSetFont($lblEx, 7, 400, 0, "Segoe UI")
-    GUICtrlSetColor($lblEx, 0xAAAAAA)
+    ; ====== INFORMAÇÕES EXTRAS (F1, F2, F3, etc) ======
+    ; Posição Y = 40 pixels do topo
+    ; Altura = 30 pixels (para caber tudo)
+    ; Fonte: Segoe UI, tamanho 8, normal (400)
+    ; Cor: CINZA (0xAAAAAA)
+    Local $lblEx = GUICtrlCreateLabel($atalhoExtra, $x, 38, $CARD_W, 30, $SS_CENTER)
+    GUICtrlSetFont($lblEx, 8, 400, 0, "Segoe UI")
+    GUICtrlSetColor($lblEx, 0xAAAAAA)                       ; Cinza
     GUICtrlSetBkColor($lblEx, $BG_COLOR)
 
     Local $ret[2] = [$lblStat, $lblEx]
