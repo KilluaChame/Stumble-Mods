@@ -35,7 +35,7 @@ _SetTransparentColor($hGUI, 0x010101)
 Global $dataAim = _CriarCard(0,   "AIM ASSIST", "OFF [F7]")
 Global $dataPlat = _CriarCard(220, "PLATAFORMA", "OFF [F8]", "")
 ; AFK card includes help for F1/F2/F3 and shows selected event when available
-Global $dataFarm = _CriarCard(440, "AFK FARM",   "OFF [F10]ww", "[F1] Normal  [F2] Ranked  [F3] Custom (use 1/2)")
+Global $dataFarm = _CriarCard(440, "AFK FARM",   "OFF [F10]ww", "[F1] Normal  [F2] Ranked  [F3] Custom (use 1/2/3/4)")
 
 GUISetState(@SW_SHOWNOACTIVATE, $hGUI)
 

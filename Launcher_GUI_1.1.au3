@@ -11,12 +11,25 @@ Global Const $APP_VERSION = "1.1"
 Global Const $APP_AUTHOR = "Mateus Chame"
 
 ; ===============================
+; IDIOMA (PT = Português, EN = Inglês)
+; ===============================
+Global $LANGUAGE = "PT" ; Altere para "EN" para Inglês
+
+; ===============================
+; DICIONÁRIO DE TRADUÇÕES
+; ===============================
+Global $STRINGS[2][14] = [ _
+    ["PT", "Aim Assist", "Plataforma Timer", "AFK Farm", "Transparência do Overlay (Fantasma)", "Iniciar", "Parar", "Fechar Todos [F11]", "Sobre - Stumble Mods", "Versão", "Desenvolvido por", "Uma suite completa de automação para Stumble Guys", "Módulos", "Pressione F11 para fechar todos os módulos"], _
+    ["EN", "Aim Assist", "Platform Timer", "AFK Farm", "Overlay Transparency (Ghost)", "Start", "Stop", "Close All [F11]", "About - Stumble Mods", "Version", "Developed by", "A complete automation suite for Stumble Guys", "Modules", "Press F11 to close all modules"]]
+
+; ===============================
 ; HOTKEYS
 ; ===============================
 HotKeySet("{F7}", "_HK_AIM")
 HotKeySet("{F8}", "_HK_PLAT")
 HotKeySet("{F10}", "_HK_AFK")
 HotKeySet("{F11}", "_HK_CLOSE_ALL")
+HotKeySet("{F12}", "_HK_TOGGLE_LANGUAGE")
 
 ; ===============================
 ; CAMINHOS (Baseado em @ScriptDir - Portável)
@@ -69,34 +82,39 @@ If FileExists($OVERLAY_EXE) Then $PID_Overlay = Run($OVERLAY_EXE)
 ; ===============================
 ; GUI
 ; ===============================
-Global $hGUI = GUICreate("Stumble Mods Launcher v" & $APP_VERSION, 340, 310)
+Global $hGUI = GUICreate("Stumble Mods Launcher v" & $APP_VERSION, 340, 345)
 GUISetBkColor($COR_FUNDO)
 
-GUICtrlCreateLabel("Aim Assist", 20, 20, 120, 20)
+GUICtrlCreateLabel(_T(1), 20, 20, 120, 20)
 GUICtrlSetColor(-1, $COR_BRANCO)
-Global $btnAim = GUICtrlCreateButton("Iniciar", 150, 15, 90, 30)
+Global $btnAim = GUICtrlCreateButton(_T(5), 150, 15, 90, 30)
 _SetButtonGreen($btnAim)
 
-GUICtrlCreateLabel("Plataforma Timer", 20, 80, 140, 20)
+GUICtrlCreateLabel(_T(2), 20, 80, 140, 20)
 GUICtrlSetColor(-1, $COR_BRANCO)
-Global $btnPlat = GUICtrlCreateButton("Iniciar", 150, 75, 90, 30)
+Global $btnPlat = GUICtrlCreateButton(_T(5), 150, 75, 90, 30)
 _SetButtonGreen($btnPlat)
 
-GUICtrlCreateLabel("AFK Farm", 20, 140, 120, 20)
+GUICtrlCreateLabel(_T(3), 20, 140, 120, 20)
 GUICtrlSetColor(-1, $COR_BRANCO)
-Global $btnAFK = GUICtrlCreateButton("Iniciar", 150, 135, 90, 30)
+Global $btnAFK = GUICtrlCreateButton(_T(5), 150, 135, 90, 30)
 _SetButtonGreen($btnAFK)
 
-GUICtrlCreateLabel("Transparência do Overlay (Fantasma)", 20, 185, 300, 20)
+GUICtrlCreateLabel(_T(4), 20, 200, 300, 20)
 GUICtrlSetColor(-1, $COR_BRANCO)
-Global $sldAlpha = GUICtrlCreateSlider(20, 205, 300, 30)
+Global $sldAlpha = GUICtrlCreateSlider(20, 220, 300, 30)
 GUICtrlSetLimit($sldAlpha, 255, 30)
 GUICtrlSetData($sldAlpha, IniRead($STATUS_INI, "CONFIG", "Alpha", "150"))
 
-Global $btnExit = GUICtrlCreateButton("Fechar Todos [F11]", 70, 260, 200, 32)
+Global $btnExit = GUICtrlCreateButton(_T(7), 70, 275, 160, 32)
 _SetButtonRed($btnExit)
 
-Global $btnAbout = GUICtrlCreateButton("?", 280, 260, 40, 32)
+Global $btnLang = GUICtrlCreateButton($LANGUAGE, 240, 275, 40, 32)
+GUICtrlSetFont($btnLang, 10, 800)
+GUICtrlSetBkColor($btnLang, 0x3498DB)
+GUICtrlSetColor($btnLang, $COR_BRANCO)
+
+Global $btnAbout = GUICtrlCreateButton("?", 290, 275, 40, 32)
 GUICtrlSetFont($btnAbout, 12, 800)
 GUICtrlSetBkColor($btnAbout, 0x3498DB)
 GUICtrlSetColor($btnAbout, $COR_BRANCO)
@@ -121,6 +139,8 @@ While 1
             _Toggle("AFK", $btnAFK, $PID_AFK, $SCRIPT_AFK)
         Case $btnAbout
             _MostrarSobre()
+        Case $btnLang
+            _AlternarIdioma()
     EndSwitch
 
     Local $iCurrAlpha = GUICtrlRead($sldAlpha)
@@ -151,6 +171,35 @@ Func _HK_CLOSE_ALL()
     _FecharTudo()
 EndFunc
 
+Func _HK_TOGGLE_LANGUAGE()
+    _AlternarIdioma()
+EndFunc
+
+Func _T($index)
+    Local $langIndex = ($LANGUAGE = "EN") ? 1 : 0
+    Return $STRINGS[$langIndex][$index]
+EndFunc
+
+Func _AlternarIdioma()
+    If $LANGUAGE = "PT" Then
+        $LANGUAGE = "EN"
+    Else
+        $LANGUAGE = "PT"
+    EndIf
+    
+    GUICtrlSetData($btnLang, $LANGUAGE)
+    
+    ; Atualizar textos na GUI
+    GUICtrlSetData($btnAim, _T(5))
+    GUICtrlSetData($btnPlat, _T(5))
+    GUICtrlSetData($btnAFK, _T(5))
+    GUICtrlSetData($btnExit, _T(7))
+    
+    ToolTip(_T(4) & ": " & _T(1), 10, 10)
+    Sleep(2000)
+    ToolTip("")
+EndFunc
+
 Func _Toggle($section, ByRef $btn, ByRef $pid, $path)
     If $pid = 0 Then
         $pid = Run($path)
@@ -160,14 +209,14 @@ Func _Toggle($section, ByRef $btn, ByRef $pid, $path)
         EndIf
         SoundPlay($SOUND_START)
         IniWrite($STATUS_INI, $section, "on", "1")
-        GUICtrlSetData($btn, "Parar")
+        GUICtrlSetData($btn, _T(6))
         _SetButtonRed($btn)
     Else
         ProcessClose($pid)
         SoundPlay($SOUND_STOP)
         $pid = 0
         IniWrite($STATUS_INI, $section, "on", "0")
-        GUICtrlSetData($btn, "Iniciar")
+        GUICtrlSetData($btn, _T(5))
         _SetButtonGreen($btn)
     EndIf
 EndFunc
@@ -193,14 +242,15 @@ Func _SetButtonRed($btn)
 EndFunc
 
 Func _MostrarSobre()
-    MsgBox(0, "Sobre - Stumble Mods", _
-        "Stumble Mods Launcher" & @CRLF & @CRLF & _
-        "Versão: " & $APP_VERSION & @CRLF & _
-        "Desenvolvido por: " & $APP_AUTHOR & @CRLF & @CRLF & _
-        "Uma suite completa de automação para Stumble Guys" & @CRLF & @CRLF & _
-        "Módulos:" & @CRLF & _
+    Local $txtSobre = "Stumble Mods Launcher" & @CRLF & @CRLF & _
+        _T(9) & ": " & $APP_VERSION & @CRLF & _
+        _T(10) & ": " & $APP_AUTHOR & @CRLF & @CRLF & _
+        _T(11) & @CRLF & @CRLF & _
+        _T(12) & ":" & @CRLF & _
         "  • Aim Assist (F7)" & @CRLF & _
-        "  • Plataforma Timer (F8)" & @CRLF & _
-        "  • AFK Farm (F10)" & @CRLF & @CRLF & _
-        "Pressione F11 para fechar todos os módulos")
+        "  • " & _T(2) & " (F8)" & @CRLF & _
+        "  • " & _T(3) & " (F10)" & @CRLF & @CRLF & _
+        _T(13)
+    
+    MsgBox(0, _T(8), $txtSobre)
 EndFunc
