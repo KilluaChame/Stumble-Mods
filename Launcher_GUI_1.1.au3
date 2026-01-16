@@ -5,6 +5,12 @@
 #RequireAdmin
 
 ; ===============================
+; VERSÃO E INFORMAÇÕES
+; ===============================
+Global Const $APP_VERSION = "1.1"
+Global Const $APP_AUTHOR = "Mateus Chame"
+
+; ===============================
 ; HOTKEYS
 ; ===============================
 HotKeySet("{F7}", "_HK_AIM")
@@ -13,13 +19,13 @@ HotKeySet("{F10}", "_HK_AFK")
 HotKeySet("{F11}", "_HK_CLOSE_ALL")
 
 ; ===============================
-; CAMINHOS (Verifique se os .exe existem nestes locais)
+; CAMINHOS (Baseado em @ScriptDir - Portável)
 ; ===============================
-Global Const $SCRIPT_AIMBOT = "C:\Users\lizzi\OneDrive\Desktop\Jogos\Mods\Stumble\Aimbot\Aimbot_Teclado1.1_F7Close.exe"
-Global Const $SCRIPT_PLATAFORMA = "C:\Users\lizzi\OneDrive\Desktop\Jogos\Mods\Stumble\Plataforma\PlataformaTimer.exe"
-Global Const $SCRIPT_AFK = "C:\Users\lizzi\OneDrive\Desktop\Jogos\Mods\Stumble\AFK_FARM\AFK_Test_Modos - Copia.exe"
+Global Const $SCRIPT_AIMBOT = @ScriptDir & "\Aimbot\Aimbot_Teclado1.1_F7Close.exe"
+Global Const $SCRIPT_PLATAFORMA = @ScriptDir & "\Plataforma\PlataformaTimer.exe"
+Global Const $SCRIPT_AFK = @ScriptDir & "\AFK_FARM\AFK_Test_Modos - Copia.exe"
 Global Const $OVERLAY_EXE = @ScriptDir & "\Overlay.exe"
-Global Const $STATUS_INI = @ScriptDir & "\status.ini" ; Corrigido aqui
+Global Const $STATUS_INI = @ScriptDir & "\status.ini"
 
 ; ===============================
 ; SONS (Padrão Windows)
@@ -63,7 +69,7 @@ If FileExists($OVERLAY_EXE) Then $PID_Overlay = Run($OVERLAY_EXE)
 ; ===============================
 ; GUI
 ; ===============================
-Global $hGUI = GUICreate("Stumble Mods Launcher", 340, 310)
+Global $hGUI = GUICreate("Stumble Mods Launcher v" & $APP_VERSION, 340, 310)
 GUISetBkColor($COR_FUNDO)
 
 GUICtrlCreateLabel("Aim Assist", 20, 20, 120, 20)
@@ -90,6 +96,11 @@ GUICtrlSetData($sldAlpha, IniRead($STATUS_INI, "CONFIG", "Alpha", "150"))
 Global $btnExit = GUICtrlCreateButton("Fechar Todos [F11]", 70, 260, 200, 32)
 _SetButtonRed($btnExit)
 
+Global $btnAbout = GUICtrlCreateButton("?", 280, 260, 40, 32)
+GUICtrlSetFont($btnAbout, 12, 800)
+GUICtrlSetBkColor($btnAbout, 0x3498DB)
+GUICtrlSetColor($btnAbout, $COR_BRANCO)
+
 GUISetState(@SW_SHOW)
 
 ; ===============================
@@ -108,6 +119,8 @@ While 1
             _Toggle("PLATAFORMA", $btnPlat, $PID_Plataforma, $SCRIPT_PLATAFORMA)
         Case $btnAFK
             _Toggle("AFK", $btnAFK, $PID_AFK, $SCRIPT_AFK)
+        Case $btnAbout
+            _MostrarSobre()
     EndSwitch
 
     Local $iCurrAlpha = GUICtrlRead($sldAlpha)
@@ -177,4 +190,17 @@ EndFunc
 Func _SetButtonRed($btn)
     GUICtrlSetBkColor($btn, $COR_VERMELHO)
     GUICtrlSetColor($btn, $COR_BRANCO)
+EndFunc
+
+Func _MostrarSobre()
+    MsgBox(0, "Sobre - Stumble Mods", _
+        "Stumble Mods Launcher" & @CRLF & @CRLF & _
+        "Versão: " & $APP_VERSION & @CRLF & _
+        "Desenvolvido por: " & $APP_AUTHOR & @CRLF & @CRLF & _
+        "Uma suite completa de automação para Stumble Guys" & @CRLF & @CRLF & _
+        "Módulos:" & @CRLF & _
+        "  • Aim Assist (F7)" & @CRLF & _
+        "  • Plataforma Timer (F8)" & @CRLF & _
+        "  • AFK Farm (F10)" & @CRLF & @CRLF & _
+        "Pressione F11 para fechar todos os módulos")
 EndFunc
