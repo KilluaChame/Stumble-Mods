@@ -27,8 +27,7 @@ Uma coleção completa de scripts **AutoIt3** e EXEs compilados que trabalham em
 - Suporte para múltiplos modos:
   - **[F1]** Normal
   - **[F2]** Ranked
-  - **[F3]** Custom
-  - **[F3]** Dentro do F3(Custom), pressione **1**, **2**, **3** ou **4** para escolher o evento.
+  - **[F3]** Custom, pressione **1**, **2**, **3** ou **4** para escolher o evento.
 - Detecção automática de resolução (suporte multi-resolução)
 - Algoritmo de transformação de coordenadas
 
