@@ -36,7 +36,7 @@ HotKeySet("{F12}", "_HK_TOGGLE_LANGUAGE")
 ; ===============================
 Global Const $SCRIPT_AIMBOT = @ScriptDir & "\Aimbot\Aimbot_Teclado1.1_F7Close.exe"
 Global Const $SCRIPT_PLATAFORMA = @ScriptDir & "\Plataforma\PlataformaTimer.exe"
-Global Const $SCRIPT_AFK = @ScriptDir & "\AFK_FARM\AFK_Test_Modos - Copia.exe"
+Global Const $SCRIPT_AFK = @ScriptDir & "\AFK_FARM\AFK_Test_Modos.exe"
 Global Const $OVERLAY_EXE = @ScriptDir & "\Overlay.exe"
 Global Const $STATUS_INI = @ScriptDir & "\status.ini"
 
