@@ -1,0 +1,62 @@
+# ===========================
+# AutoIt3 Compilados
+# ===========================
+*.exe
+*.dll
+*.a3x
+
+# ===========================
+# Backups
+# ===========================
+*Backup*
+*Copia*
+*.bak
+*.tmp
+*.backup
+*~
+
+# ===========================
+# Temporários
+# ===========================
+*.log
+*.ini~
+~*
+.~*
+
+# ===========================
+# Sistema Operacional
+# ===========================
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ===========================
+# IDEs e Editores
+# ===========================
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~.
+
+# ===========================
+# Node (caso use scripts auxiliares)
+# ===========================
+node_modules/
+package-lock.json
+
+# ===========================
+# Python (se tiver scripts helper)
+# ===========================
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# ===========================
+# Arquivos da Pasta .github
+# ===========================
+.github/workflows/

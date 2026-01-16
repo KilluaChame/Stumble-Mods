@@ -1,0 +1,2 @@
+F8 fecha
+F1 inicia contagem plataforma
