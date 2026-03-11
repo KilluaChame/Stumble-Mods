@@ -1,3 +1,6 @@
+![License: Custom](https://img.shields.io/badge/License-Personal_Use_Only-orange.svg)
+![Commercial: Contact Me](https://img.shields.io/badge/Commercial_Use-Paid-blue.svg)
+
 # 🎮 Stumble Mods - Suite de Automação para Stumble Guys
 
 Uma coleção completa e profissional de scripts **AutoIt3** e EXEs compilados que trabalham em conjunto para oferecer um **launcher unificado**, **overlay visual em tempo real** e **múltiplas ferramentas de automação** para Stumble Guys.
