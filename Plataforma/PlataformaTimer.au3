@@ -11,6 +11,17 @@ Global $dll = DllOpen("user32.dll")     ; DLL para monitorar teclas (tecla Espa�
 Global $DLL_WINMM = DllOpen("winmm.dll") ; DLL para controle de sons de sistema
 Global Const $GAME_TITLE = "Stumble Guys"
 
+; Debug log
+Func Debug($msg)
+    Local $timestamp = @HOUR & ":" & @MIN & ":" & @SEC
+    Local $line = $timestamp & " - [PLATAFORMA] " & $msg
+    If Not @Compiled Then
+        ConsoleWrite($line & @CRLF)
+    EndIf
+    Local $debugLog = @ScriptDir & "\..\..\debug.log"
+    FileWrite($debugLog, $line & @CRLF)
+EndFunc
+
 ; Definição das teclas de atalho (Hotkeys)
 HotKeySet("{F8}", "_Sair")            ; F8 fecha o script completamente
 HotKeySet("{F1}", "_ModoCalibracao")  ; F1 ativa o modo de gravação de tempo

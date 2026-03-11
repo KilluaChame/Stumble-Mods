@@ -1,6 +1,7 @@
 #include <GUIConstantsEx.au3>
 #include <WindowsConstants.au3>
 #include <SliderConstants.au3>
+#include <ListBoxConstants.au3>
 
 #RequireAdmin
 
@@ -18,9 +19,9 @@ Global $LANGUAGE = "PT" ; Altere para "EN" para Inglês
 ; ===============================
 ; DICIONÁRIO DE TRADUÇÕES
 ; ===============================
-Global $STRINGS[2][14] = [ _
-    ["PT", "Aim Assist", "Plataforma Timer", "AFK Farm", "Transparência do Overlay (Fantasma)", "Iniciar", "Parar", "Fechar Todos [F11]", "Sobre - Stumble Mods", "Versão", "Desenvolvido por", "Uma suite completa de automação para Stumble Guys", "Módulos", "Pressione F11 para fechar todos os módulos"], _
-    ["EN", "Aim Assist", "Platform Timer", "AFK Farm", "Overlay Transparency (Ghost)", "Start", "Stop", "Close All [F11]", "About - Stumble Mods", "Version", "Developed by", "A complete automation suite for Stumble Guys", "Modules", "Press F11 to close all modules"]]
+Global $STRINGS[2][18] = [ _
+    ["PT", "Aim Assist", "Plataforma Timer", "AFK Farm", "Transparência do Overlay (Fantasma)", "Iniciar", "Parar", "Fechar Todos [F11]", "Sobre - Stumble Mods", "Versão", "Desenvolvido por", "Uma suite completa de automação para Stumble Guys", "Módulos", "Pressione F11 para fechar todos os módulos", "Calibrar Pixels [AFK]", "Selecione o ponto:", "Capturar [Enter]", "Salvar e Fechar"], _
+    ["EN", "Aim Assist", "Platform Timer", "AFK Farm", "Overlay Transparency (Ghost)", "Start", "Stop", "Close All [F11]", "About - Stumble Mods", "Version", "Developed by", "A complete automation suite for Stumble Guys", "Modules", "Press F11 to close all modules", "Calibrate Pixels [AFK]", "Select point:", "Capture [Enter]", "Save and Close"]]
 
 ; ===============================
 ; HOTKEYS
@@ -37,8 +38,10 @@ HotKeySet("{F12}", "_HK_TOGGLE_LANGUAGE")
 Global Const $SCRIPT_AIMBOT = @ScriptDir & "\Aimbot\Aimbot_Teclado1.1_F7Close.exe"
 Global Const $SCRIPT_PLATAFORMA = @ScriptDir & "\Plataforma\PlataformaTimer.exe"
 Global Const $SCRIPT_AFK = @ScriptDir & "\AFK_FARM\AFK_Test_Modos.exe"
+Global Const $SCRIPT_CALIBRAGEM = @ScriptDir & "\Calibragem\Calibragem.exe"
 Global Const $OVERLAY_EXE = @ScriptDir & "\Overlay.exe"
 Global Const $STATUS_INI = @ScriptDir & "\status.ini"
+Global Const $PIXELS_INI = @ScriptDir & "\pixels.ini"
 
 ; ===============================
 ; SONS (Padrão Windows)
@@ -82,7 +85,7 @@ If FileExists($OVERLAY_EXE) Then $PID_Overlay = Run($OVERLAY_EXE)
 ; ===============================
 ; GUI
 ; ===============================
-Global $hGUI = GUICreate("Stumble Mods Launcher v" & $APP_VERSION, 340, 345)
+Global $hGUI = GUICreate("Stumble Mods Launcher v" & $APP_VERSION, 340, 380)
 GUISetBkColor($COR_FUNDO)
 
 GUICtrlCreateLabel(_T(1), 20, 20, 120, 20)
@@ -119,6 +122,10 @@ GUICtrlSetFont($btnAbout, 12, 800)
 GUICtrlSetBkColor($btnAbout, 0x3498DB)
 GUICtrlSetColor($btnAbout, $COR_BRANCO)
 
+Global $btnCalibrar = GUICtrlCreateButton(_T(14), 20, 310, 300, 32)
+GUICtrlSetBkColor($btnCalibrar, 0xF39C12)
+GUICtrlSetColor($btnCalibrar, $COR_BRANCO)
+
 GUISetState(@SW_SHOW)
 
 ; ===============================
@@ -141,6 +148,8 @@ While 1
             _MostrarSobre()
         Case $btnLang
             _AlternarIdioma()
+        Case $btnCalibrar
+            If FileExists($SCRIPT_CALIBRAGEM) Then Run($SCRIPT_CALIBRAGEM)
     EndSwitch
 
     Local $iCurrAlpha = GUICtrlRead($sldAlpha)
@@ -194,6 +203,7 @@ Func _AlternarIdioma()
     GUICtrlSetData($btnPlat, _T(5))
     GUICtrlSetData($btnAFK, _T(5))
     GUICtrlSetData($btnExit, _T(7))
+    GUICtrlSetData($btnCalibrar, _T(14))
     
     ToolTip(_T(4) & ": " & _T(1), 10, 10)
     Sleep(2000)
@@ -254,3 +264,13 @@ Func _MostrarSobre()
     
     MsgBox(0, _T(8), $txtSobre)
 EndFunc
+
+; Função auxiliar para transparência (igual ao overlay)
+Func _SetTransparentColor($hWnd, $iColor)
+    DllCall("user32.dll", "int", "SetLayeredWindowAttributes", "hwnd", $hWnd, "dword", $iColor, "byte", 255, "dword", 0x2)
+EndFunc
+
+; ===============================
+; Nota: Código de calibração foi movido para script independente: Calibragem.au3
+; O botão de calibração agora executa: @ScriptDir & "\Calibragem\Calibragem.exe"
+; ===============================

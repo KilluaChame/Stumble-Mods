@@ -11,6 +11,18 @@ Global $dll = DllOpen("user32.dll")
 Global Const $GAME_TITLE = "Stumble Guys" ; T�tulo do jogo para rastreio
 
 Global $TEMPO_SEGURAR = 100
+
+; Debug log
+Func Debug($msg)
+    Local $timestamp = @HOUR & ":" & @MIN & ":" & @SEC
+    Local $line = $timestamp & " - [AIM] " & $msg
+    If Not @Compiled Then
+        ConsoleWrite($line & @CRLF)
+    EndIf
+    Local $debugLog = @ScriptDir & "\..\debug.log"
+    FileWrite($debugLog, $line & @CRLF)
+EndFunc
+
 Global $Habilidade_M1 = "1"
 Global $Habilidade_M2 = "2"
 Global $Habilidade_M4 = "3"

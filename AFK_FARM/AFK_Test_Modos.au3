@@ -24,6 +24,9 @@ Global $baseHeight = 1080
 Global $windowWidth = 1920
 Global $windowHeight = 1080
 
+; Arquivo de pixels calibrados
+Global $pixelsIni = @ScriptDir & "\..\pixels.ini"
+
 ; Modo de jogo
 Global $modoGame = 0 ; 1 normal | 2 ranked | 3 custom
 
@@ -45,22 +48,41 @@ Global Const $SOUND_START = "C:\Windows\Media\Speech On.wav"
 Global Const $SOUND_STOP = "C:\Windows\Media\Speech Off.wav"
 Global Const $SOUND_EXIT = "C:\Windows\Media\Notify.wav"
 
+; Função auxiliar para ler coordenadas calibradas ou usar padrão
+Func GetCalibratedPixel($section, $defaultX, $defaultY, $defaultColor = "", $defaultTolerance = 10)
+    Local $ret[4]
+    $ret[0] = IniRead($pixelsIni, $section, "x", $defaultX)
+    $ret[1] = IniRead($pixelsIni, $section, "y", $defaultY)
+    $ret[2] = IniRead($pixelsIni, $section, "color", $defaultColor)
+    $ret[3] = IniRead($pixelsIni, $section, "tolerance", $defaultTolerance)
+    Return $ret
+EndFunc
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Main loop
 
 _Main()
 Func _Main()
+    ; Limpar arquivo de debug no início
+    Local $debugLog = @ScriptDir & "\..\debug.log"
+    FileDelete($debugLog)
+    Debug("=== BOT INICIADO ===")
+    
     ; Change AutoIt defaults
     Opt("MouseCoordMode", 2)
     Opt("PixelCoordMode", 2)
     Opt("SendKeyDownDelay", 25)
+    
+    Debug("Configurações AutoIt aplicadas")
 
     ; Detect if game window is present and has focus
-    Debug("Waiting until game gets active focus")
+    Debug("Verificando se o jogo está ativo...")
     WinWaitActive($title)
-
+    Debug("Jogo encontrado e ativo!")
+    
     ; Get window handle
     $hWnd = WinGetHandle($title)
+    Debug("Handle da janela obtido: " & $hWnd)
     
     ; Get actual window size
     Local $size = GetClientSize($hWnd)
@@ -202,7 +224,8 @@ Func _Main()
             Else
 				If $modoGame = 1 and DetectMainMenu() = 1 Then
                 ClickPlayGame()
-				_Sleep(1000)
+				_Sleep(600)
+				ClickNormal()
 				$lastAction = TimerInit()
 				EndIf
             EndIf
@@ -439,9 +462,13 @@ EndFunc
 
 Func DetectMainMenu()
     ; Detecta tela de menu principal
-    Local $match1 = IsHexColorInRange(Pixel(1789, 205), "FF2C2C", 10)
-    Local $match2 = IsHexColorInRange(Pixel(1640, 988), "191919", 10)
-	Local $match3 = IsHexColorInRange(Pixel(1622, 982), "FFFFFF", 10)
+    Local $p1 = GetCalibratedPixel("DetectMainMenu1", 1789, 205, "FF2C2C", 10)
+    Local $p2 = GetCalibratedPixel("DetectMainMenu2", 1640, 988, "191919", 10)
+    Local $p3 = GetCalibratedPixel("DetectMainMenu3", 1622, 982, "FFFFFF", 10)
+    
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+	Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
     If $match1 And $match2 And $match3 Then Return 1
     Return 0
@@ -449,25 +476,32 @@ EndFunc
 
 Func DetectMainMenuMissionComplete()
 	; (Red Number Badge)
-	If IsHexColorInRange(Pixel(1867, 152), "FF4B4B", 10) Or IsHexColorInRange(Pixel(1893, 181), "FF4B4B", 10) Then Return 1
+	Local $p1 = GetCalibratedPixel("DetectMainMenuMissionComplete1", 1867, 152, "FF4B4B", 10)
+	Local $p2 = GetCalibratedPixel("DetectMainMenuMissionComplete2", 1893, 181, "FF4B4B", 10)
+	If IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3]) Or IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3]) Then Return 1
 
 	Return 0
 EndFunc
 
 Func DetectMissionReward()
 	; (Full Progress Bar)
-	If IsHexColorInRange(Pixel(787, 861), "FFFF94", 10) Or IsHexColorInRange(Pixel(1542, 860), "FFFF94", 10) Then Return 1
+	Local $p1 = GetCalibratedPixel("DetectMissionReward1", 787, 861, "FFFF94", 10)
+	Local $p2 = GetCalibratedPixel("DetectMissionReward2", 1542, 860, "FFFF94", 10)
+	If IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3]) Or IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3]) Then Return 1
 
 	Return 0
 EndFunc
 
 Func DetectStumbleJourneyLevelUp()
 	;Level Up! branco
-	Local $match1 = IsHexColorInRange(Pixel(962, 138), "FFFFFF", 10)
+	Local $p1 = GetCalibratedPixel("DetectStumbleJourneyLevelUp1", 962, 138, "FFFFFF", 10)
+	Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
 	;Engrenagem cinza
-	Local $match2 = IsHexColorInRange(Pixel(1829, 60), "435260", 10)
+	Local $p2 = GetCalibratedPixel("DetectStumbleJourneyLevelUp2", 1829, 60, "435260", 10)
+	Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
 	;Barra completa
-	Local $match3 = IsHexColorInRange(Pixel(556, 81), "134C60", 15)
+	Local $p3 = GetCalibratedPixel("DetectStumbleJourneyLevelUp3", 556, 81, "134C60", 15)
+	Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
 	If $match1 And $match2 And $match3 Then Return 1
 	Return 0
@@ -475,10 +509,14 @@ EndFunc
 
 Func DetectStumblePassLevelUp()
 	; (Blue Continue Button)
-	Local $matchButton = IsHexColorInRange(Pixel(203, 948), "0D89EC", 10) Or IsHexColorInRange(Pixel(513, 995), "086EE7", 10)
+	Local $p1 = GetCalibratedPixel("DetectStumblePassLevelUp1", 203, 948, "0D89EC", 10)
+	Local $p2 = GetCalibratedPixel("DetectStumblePassLevelUp2", 513, 995, "086EE7", 10)
+	Local $matchButton = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3]) Or IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
 
 	; (White in Banner)
-	Local $matchBanner = IsHexColorInRange(Pixel(611, 117), "FFFFFF", 10) Or IsHexColorInRange(Pixel(1308, 118), "FFFFFF", 10)
+	Local $p3 = GetCalibratedPixel("DetectStumblePassLevelUp3", 611, 117, "FFFFFF", 10)
+	Local $p4 = GetCalibratedPixel("DetectStumblePassLevelUp4", 1308, 118, "FFFFFF", 10)
+	Local $matchBanner = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3]) Or IsHexColorInRange(Pixel($p4[0], $p4[1]), $p4[2], $p4[3])
 
 	; Both of them should match
 	If $matchButton And $matchBanner Then Return 1
@@ -488,13 +526,16 @@ EndFunc
 
 Func DetectGetItemBox()
 	; yellow banner
-	Local $match1 = IsHexColorInRange(Pixel(854, 163), "FFC800", 15)
+	Local $p1 = GetCalibratedPixel("DetectGetItemBox1", 854, 163, "FFC800", 15)
+	Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
 
 	; white Box name
-	Local $match2 = IsHexColorInRange(Pixel(952, 125), "FFFFFF", 15)
+	Local $p2 = GetCalibratedPixel("DetectGetItemBox2", 952, 125, "FFFFFF", 15)
+	Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
 
 	; Blue button
-	Local $match3 = IsHexColorInRange(Pixel(901, 1001), "0B7AE9", 15)
+	Local $p3 = GetCalibratedPixel("DetectGetItemBox3", 901, 1001, "0B7AE9", 15)
+	Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
 	; All of them should match
 	If $match1 And $match2 And $match3 Then Return 1
@@ -503,22 +544,26 @@ Func DetectGetItemBox()
 EndFunc
 
 Func DetectItemReceived()
-	; (White Received Text)
-	Local $match1 = IsHexColorInRange(Pixel(929, 422), "FFFFFF", 20)
+    ; (White Received Text)
+    Local $p1 = GetCalibratedPixel("DetectItemReceived1", 929, 422, "FFFFFF", 20)
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
 
-	; (Purple Background)
-	Local $match2 = IsHexColorInRange(Pixel(1040, 385), "7E1CB8", 20)
+    ; (Purple Background)
+    Local $p2 = GetCalibratedPixel("DetectItemReceived2", 1040, 385, "7E1CB8", 20)
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
 
-	; (Green Equip Now Button)
-	Local $match3 = IsHexColorInRange(Pixel(610, 922), "55DB1E", 20)
+    ; (Green Equip Now Button)
+    Local $p3 = GetCalibratedPixel("DetectItemReceived3", 610, 922, "55DB1E", 20)
+    Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
-	; (Blue OK Button)
-	Local $match4 = IsHexColorInRange(Pixel(1601, 915), "0D88EC", 20)
+    ; (Blue OK Button)
+    Local $p4 = GetCalibratedPixel("DetectItemReceived4", 1601, 915, "0D88EC", 20)
+    Local $match4 = IsHexColorInRange(Pixel($p4[0], $p4[1]), $p4[2], $p4[3])
 
-	; All of them should match
-	If $match1 And $match2 And $match3 And $match4 Then Return 1
+    ; All of them should match
+    If $match1 And $match2 And $match3 And $match4 Then Return 1
 
-	Return 0
+    Return 0
 EndFunc
 
 Func DetectBoxReceived()
@@ -555,19 +600,24 @@ EndFunc
 
 Func DetectAdvert()
 	; (Green bottom left purchase button)
-	Local $match1 = IsHexColorInRange(Pixel(719, 919), "B1FB76", 10)
+	Local $p1 = GetCalibratedPixel("DetectAdvert1", 719, 919, "B1FB76", 10)
+	Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
 
 	; (Green bottom right purchase button)
-	Local $match2 = IsHexColorInRange(Pixel(1167, 919), "7AB068", 10)
+	Local $p2 = GetCalibratedPixel("DetectAdvert2", 1167, 919, "7AB068", 10)
+	Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
 
 	; (Purple top left)
-	Local $match3 = IsHexColorInRange(Pixel(335, 156), "152ED2", 10)
+	Local $p3 = GetCalibratedPixel("DetectAdvert3", 335, 156, "152ED2", 10)
+	Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
 	; (Pink bottom right)
-	Local $match4 = IsHexColorInRange(Pixel(1581, 932), "CE4F8E", 10)
+	Local $p4 = GetCalibratedPixel("DetectAdvert4", 1581, 932, "CE4F8E", 10)
+	Local $match4 = IsHexColorInRange(Pixel($p4[0], $p4[1]), $p4[2], $p4[3])
 
 	; (Red x button)
-	Local $match5 = IsHexColorInRange(Pixel(1557, 103), "F45731", 10)
+	Local $p5 = GetCalibratedPixel("DetectAdvert5", 1557, 103, "F45731", 10)
+	Local $match5 = IsHexColorInRange(Pixel($p5[0], $p5[1]), $p5[2], $p5[3])
 
 	; All of them should match
 	If $match1 And $match2 And $match3 And $match4 And $match5 Then Return 1
@@ -628,14 +678,18 @@ EndFunc
 
 Func DetectGameStart()
 	; (White Screen Banner)
-	If IsHexColorInRange(Pixel(672, 72), "FFFFFF", 10) And IsHexColorInRange(Pixel(1250, 52), "FFFFFF", 10) Then Return 1
+	Local $p1 = GetCalibratedPixel("DetectGameStart1", 672, 72, "FFFFFF", 10)
+	Local $p2 = GetCalibratedPixel("DetectGameStart2", 1250, 52, "FFFFFF", 10)
+	If IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3]) And IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3]) Then Return 1
 
 	Return 0
 EndFunc
 
 Func DetectGameRunning()
 	; (White Player Arrow)
-	If IsHexColorInRange(Pixel(955, 446), "FFFFFF", 10) And IsHexColorInRange(Pixel(962, 446), "FFFFFF", 10) Then Return 1
+	Local $p1 = GetCalibratedPixel("DetectGameRunning1", 955, 446, "FFFFFF", 10)
+	Local $p2 = GetCalibratedPixel("DetectGameRunning2", 962, 446, "FFFFFF", 10)
+	If IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3]) And IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3]) Then Return 1
 
 	Return 0
 EndFunc
@@ -649,7 +703,9 @@ EndFunc
 
 Func DetectGameLost()
 	; (Red Leave Button) 
-	If IsHexColorInRange(Pixel(228, 969), "F7513F", 20) And IsHexColorInRange(Pixel(35, 969), "F44C39", 20) Then Return 1
+	Local $p1 = GetCalibratedPixel("DetectGameLost1", 228, 969, "F7513F", 20)
+	Local $p2 = GetCalibratedPixel("DetectGameLost2", 35, 969, "F44C39", 20)
+	If IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3]) And IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3]) Then Return 1
 
 	Return 0
 EndFunc
@@ -684,64 +740,83 @@ Func DetectGetReward()
     If DetectEventMenu() = 1 Then Return 0
 
     ; Detect green "Resgatar" button (new UI)
-    Local $match1 = IsHexColorInRange(Pixel(1511, 956), "4DD61B", 10)
-    Local $match2 = IsHexColorInRange(Pixel(1594, 958), "FFFFFF", 10)
-    Local $match3 = IsHexColorInRange(Pixel(1732, 961), "4AD61B", 10)
+    Local $p1 = GetCalibratedPixel("DetectGetReward1", 1511, 956, "4DD61B", 10)
+    Local $p2 = GetCalibratedPixel("DetectGetReward2", 1594, 958, "FFFFFF", 10)
+    Local $p3 = GetCalibratedPixel("DetectGetReward3", 1732, 961, "4AD61B", 10)
+    
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+    Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
     If $match1 And $match2 And $match3 Then Return 1
     Return 0
 EndFunc
 
-Func DetectGetRankedReward()
-    ; Detect Blue "Resgatar" button (new UI)
-    Local $match1 = IsHexColorInRange(Pixel(1516, 935), "0582DC", 15)
-    Local $match2 = IsHexColorInRange(Pixel(1734, 985), "0250A7", 15)
-
-    If $match1 and $match2 Then Return 1
-    Return 0
-EndFunc
-
-Func DetectRankedMenu()
-    Local $match1 = IsHexColorInRange(Pixel(1149, 758), "3C4D84", 15)
-    Local $match2 = IsHexColorInRange(Pixel(1524, 759), "8CA7A6", 15)
-
-    If $match1 and $match2 Then Return 1
-    Return 0
-EndFunc
-
 Func DetectEventRoom()
-    Local $match1 = IsHexColorInRange(Pixel(1080, 921), "3B4D84", 15)
-    Local $match2 = IsHexColorInRange(Pixel(1447, 919), "8CA7A7", 15)
-	Local $match3 = IsHexColorInRange(Pixel(1763, 66), "F45831", 15)
+    Local $p1 = GetCalibratedPixel("DetectEventRoom1", 1080, 921, "3B4D84", 15)
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $p2 = GetCalibratedPixel("DetectEventRoom2", 1447, 919, "8CA7A7", 15)
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+    Local $p3 = GetCalibratedPixel("DetectEventRoom3", 1763, 66, "F45831", 15)
+    Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
     If $match1 and $match2 and $match3 Then Return 1
     Return 0
 EndFunc
 
 Func DetectEventMenu()
-    Local $match1 = IsHexColorInRange(Pixel(463, 61), "384A80", 20) ; Azul escuro Let's play
-    Local $match2 = IsHexColorInRange(Pixel(386, 982), "FFF589", 20) ; amarelo claro events gif
-	Local $match3 = IsHexColorInRange(Pixel(503, 63), "FFFFFF", 20) ; Branco Let's play
+    Local $p1 = GetCalibratedPixel("DetectEventMenu1", 463, 61, "384A80", 20)
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $p2 = GetCalibratedPixel("DetectEventMenu2", 386, 982, "FFF589", 20)
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+    Local $p3 = GetCalibratedPixel("DetectEventMenu3", 503, 63, "FFFFFF", 20)
+    Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
     If $match1 and $match2 and $match3 Then Return 1
     Return 0
 EndFunc
 
 Func DetectDayReward()
-	Local $match1 = IsHexColorInRange(Pixel(423, 806), "FFFFFF", 15)
-    Local $match2 = IsHexColorInRange(Pixel(482, 805), "191919", 15)
-	Local $match3 = IsHexColorInRange(Pixel(732, 804), "E7B212", 15)
+    Local $p1 = GetCalibratedPixel("DetectDayReward1", 423, 806, "FFFFFF", 15)
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $p2 = GetCalibratedPixel("DetectDayReward2", 482, 805, "191919", 15)
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+    Local $p3 = GetCalibratedPixel("DetectDayReward3", 732, 804, "E7B212", 15)
+    Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
     If $match1 and $match2 and $match3 Then Return 1
     Return 0
 EndFunc
 
 Func DetectExitStumble()
-	Local $match1 = IsHexColorInRange(Pixel(701, 335), "0D1C32", 15) ;dark blue background
-    Local $match2 = IsHexColorInRange(Pixel(737, 717), "F44939", 15) ;red leave button
-	Local $match3 = IsHexColorInRange(Pixel(1028, 717), "087CEC", 15) ;blue button
+    Local $p1 = GetCalibratedPixel("DetectExitStumble1", 701, 335, "0D1C32", 15)
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $p2 = GetCalibratedPixel("DetectExitStumble2", 737, 717, "F44939", 15)
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+    Local $p3 = GetCalibratedPixel("DetectExitStumble3", 1028, 717, "087CEC", 15)
+    Local $match3 = IsHexColorInRange(Pixel($p3[0], $p3[1]), $p3[2], $p3[3])
 
     If $match1 and $match2 and $match3 Then Return 1
+    Return 0
+EndFunc
+
+Func DetectGetRankedReward()
+    Local $p1 = GetCalibratedPixel("DetectGetRankedReward1", 1516, 935, "0582DC", 15)
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $p2 = GetCalibratedPixel("DetectGetRankedReward2", 1734, 985, "0250A7", 15)
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+
+    If $match1 and $match2 Then Return 1
+    Return 0
+EndFunc
+
+Func DetectRankedMenu()
+    Local $p1 = GetCalibratedPixel("DetectRankedMenu1", 1149, 758, "3C4D84", 15)
+    Local $match1 = IsHexColorInRange(Pixel($p1[0], $p1[1]), $p1[2], $p1[3])
+    Local $p2 = GetCalibratedPixel("DetectRankedMenu2", 1524, 759, "8CA7A6", 15)
+    Local $match2 = IsHexColorInRange(Pixel($p2[0], $p2[1]), $p2[2], $p2[3])
+
+    If $match1 and $match2 Then Return 1
     Return 0
 EndFunc
 
@@ -784,20 +859,22 @@ EndFunc
 
 Func ClickGetReward()
 	Debug("Click Get Reward")
-	Local $x = Random(1499, 1809)
-	Local $y = Random(915, 1001)
-	_LeftClick($x, $y)
+	Mouse(1621, 965)
+	Sleep(20)
+	MouseClick("left")
+	Sleep(20)
 	$lastAction = TimerInit()
-	Sleep(1000)
+	Sleep(2000)
 	if DetectGetReward() = 1 then
 		Debug("Click Get Reward: Detected reward still present, clicking again")
-		_LeftClick($x, $y)
+		_LeftClick(1621, 965)
 		$lastAction = TimerInit()
 	EndIf
-	if $ModoGame = 3 Then
+	if $ModoGame = 3 and DetectEventMenu() Then
 		_Sleep(300)
-		HandleSkipButton()
-		_Sleep(200)
+		Debug("Click Get Reward: Detected Event Menu after reward, going back")
+		GoBack()
+		$lastAction = TimerInit()
 	EndIf
 EndFunc
 
@@ -882,7 +959,7 @@ EndFunc
 
 Func ClickExitStumbleCancel()
 	; Clica em cancelar no popup de sair do Stumble Guys
-	Mouse(2750, 723)
+	Mouse(828, 722)
 	Sleep(80)
 	MouseClick("left")
 	Sleep(80)
@@ -890,9 +967,10 @@ Func ClickExitStumbleCancel()
 EndFunc
 
 Func ClickPlayRankedGame()
-	Debug("ClickPlayRankedGame: attempt to click PlayRanked at 1194,989")
+	Debug("ClickPlayRankedGame: attempt to click PlayRanked")
+	Local $pixel = GetCalibratedPixel("ClickPlayRanked", 1294, 852, "FFFFFF", 10)
 	; Use Mouse() so coordinates are transformed for current resolution
-	Mouse(1287, 797)
+	Mouse($pixel[0], $pixel[1])
 	Sleep(80)
 	MouseClick("left")
 	Sleep(80)
@@ -922,7 +1000,7 @@ EndFunc
 
 Func ClickEventMenuButton()
 	; Use Mouse() so coordinates are transformed for current resolution
-	Mouse(1001, 981)
+	Mouse(1669, 981)
 	Sleep(80)
 	MouseClick("left")
 	Sleep(80)
@@ -943,7 +1021,7 @@ EndFunc
 Func ClickEvent2()
 	Debug("ClickEvent2: attempt to click Event2 at 891,525")
 	; Use Mouse() so coordinates are transformed for current resolution
-	Mouse(891, 525)
+	Mouse(934, 519)
 	Sleep(80)
 	MouseClick("left")
 	Sleep(80)
@@ -954,7 +1032,7 @@ EndFunc
 Func ClickEvent3()
 	Debug("ClickEvent3: attempt to click Event3 at 891,525")
 	; Use Mouse() so coordinates are transformed for current resolution
-	Mouse(1415, 536)
+	Mouse(1460, 692)
 	Sleep(80)
 	MouseClick("left")
 	Sleep(80)
@@ -965,12 +1043,23 @@ EndFunc
 Func ClickEvent4()
 	Debug("ClickEvent4: attempt to click Event4 at 891,525")
 	; Use Mouse() so coordinates are transformed for current resolution
-	Mouse(1863, 553)
+	Mouse(1853, 311)
 	Sleep(80)
 	MouseClick("left")
 	Sleep(80)
 	$lastAction = TimerInit()
 	Debug("ClickEvent4: clicked Event4")
+EndFunc
+
+Func ClickNormal()
+	Debug("ClickNormal: attempt to click Normal at 891,525")
+	; Use Mouse() so coordinates are transformed for current resolution
+	Mouse(1480, 370)
+	Sleep(80)
+	MouseClick("left")
+	Sleep(80)
+	$lastAction = TimerInit()
+	Debug("ClickNormal: clicked Normal")
 EndFunc
 
 
@@ -1239,4 +1328,8 @@ Func Debug($msg)
     If Not @Compiled Then
         ConsoleWrite($line & @CRLF)
     EndIf
+    
+    ; SEMPRE gravar em arquivo de log (compilado ou não)
+    Local $debugLog = @ScriptDir & "\..\debug.log"
+    FileWrite($debugLog, $line & @CRLF)
 EndFunc
